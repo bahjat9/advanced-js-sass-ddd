@@ -1,66 +1,123 @@
-# University Enrollment System 🎓
+# University Enrollment System
 
-**Course:** Advanced JavaScript @ EPITA  
-**Module:** Domain-Driven Design & Software Architecture
-
-## 📖 Overview
-
-Welcome to the **University Enrollment System**. This project simulates a real-world scenario where you are tasked with refactoring a legacy "spaghetti code" application into a robust, scalable system using **Domain-Driven Design (DDD)** principles.
-
-The goal is not just to make the code "work," but to make it **maintainable**, **testable**, and **aligned with business rules**.
-
-### The Architecture Goal
-
-We are moving away from "Controller-Heavy" logic toward a **Modular Monolith** (or Hexagonal) architecture.
-
-[Image of hexagonal architecture diagram]
+**Course:** Advanced JavaScript @ EPITA
+**Module:** Domain-Driven Design, Branded Types & Observer Pattern
 
 ---
 
-## 📂 Project Structure
+## Overview
 
-This repository is organized as a monorepo:
+Build a University Enrollment System from scratch, applying **Domain-Driven Design (DDD)** principles, **TypeScript Branded Types**, and the **Observer Pattern**.
 
-```text
-/
-├── backend/          # Node.js, Express, TypeScript, SQLite
-│   ├── src/
-│   │   ├── server.ts # Main entry point
-│   └── SPECS.md      # 📜 The "Ubiquitous Language" & Business Rules
-│
-├── frontend/         # Simple Client to test API
-│   └── ...
-│
-└── README.md         # This file
+The goal is not just to make the code work — but to model a real domain with proper invariants enforced at both compile-time and runtime.
+
+---
+
+## Learning Objectives
+
+- Implement **Branded Types** from scratch (`type Brand<K, T> = K & { __brand: T }`)
+- Apply **Smart Constructors** and the "Parse, Don't Validate" principle
+- Design **Value Objects** and **Entities** following DDD
+- Build a typed **Observer Pattern** with domain events
+- Enforce domain invariants at compile-time and runtime
+- Create a working **CLI** demonstrating all enrollment scenarios
+
+---
+
+## Domain Model
+
+### Entities
+
+| Entity       | Key Properties                                         | Invariants                                                |
+| ------------ | ------------------------------------------------------ | --------------------------------------------------------- |
+| `Student`    | `id`, `name`, `email`, `enrolledCredits`               | Max 18 credits/semester, valid email, unique ID           |
+| `Course`     | `code`, `name`, `credits`, `capacity`, `enrolledCount` | Capacity 1–200, credits in {1,2,3,4,6}, valid code format |
+| `Enrollment` | `id`, `studentId`, `courseCode`, `semester`, `status`  | No duplicates, only cancel active enrollments             |
+
+### Value Objects (Branded Types)
+
+| Type           | Format                       | Example          |
+| -------------- | ---------------------------- | ---------------- |
+| `StudentId`    | `STU` + 6 digits             | `STU123456`      |
+| `CourseCode`   | 2–4 letters + 3 digits       | `CS101`          |
+| `Email`        | Valid email format           | `alice@epita.fr` |
+| `Credits`      | One of: 1, 2, 3, 4, 6        | `3`              |
+| `Semester`     | `(Fall\|Spring\|Summer)YYYY` | `Fall2024`       |
+| `EnrollmentId` | `ENR` + unique identifier    | `ENR-uuid`       |
+
+---
+
+## Business Rules
+
+1. **Capacity Rule** — Cannot enroll beyond course capacity
+2. **Credit Limit Rule** — Student max 18 credits per semester
+3. **Branded Types Rule** — All values validated via smart constructors, no `any`
+4. **Uniqueness Rule** — No duplicate student + course + semester enrollment
+
+---
+
+## What to Build
+
+- 6 branded types with smart constructors (return `Type | Error`)
+- 3 entity classes enforcing all invariants
+- Observer pattern (`subscribe`, `unsubscribe`, `emit`)
+- Business logic wiring all rules together
+- CLI demonstrating 5 scenarios (see below)
+
+---
+
+## CLI Scenarios
+
+| #   | Scenario                    | Expected Outcome                      |
+| --- | --------------------------- | ------------------------------------- |
+| 1   | Successful enrollment       | `StudentEnrolled` event emitted       |
+| 2   | Course reaches 80% capacity | `CourseCapacityReached` event emitted |
+| 3   | Course becomes full         | `CourseFull` event emitted            |
+| 4   | Student exceeds 18 credits  | Enrollment fails, no event            |
+| 5   | Cancel an enrollment        | `EnrollmentCancelled` event emitted   |
+
+---
+
+## Project Structure
+
+```
+.
+├── index.ts          # CLI entry point
+├── src/
+│   ├── domain/       # Entities, Value Objects, Business Rules
+│   └── infrastructure/ # Observer / EventEmitter implementation
+├── docs/
+│   └── spec.md       # Full project specification
+├── tsconfig.json
+└── package.json
 ```
 
-## 📖 Specifications
+---
 
-Read the specifications in the [SPECS.md](SPECS.md) file for details on the requirements and business rules of the system.
+## Getting Started
 
-## 🚀 Getting Started
+```bash
+npm install
+npm run dev
+```
 
-1. Clone the repository.
-2. Navigate to the `backend` directory.
-3. Run `npm install` to install dependencies.
-4. Run `npm run dev` to start the development server.
-5. Open a web browser and navigate to `http://localhost:3000`.
-6. Interact with the API to create, read, update, and delete students and enrollments.
-7. Run `npm run build` to build the production version.
-8. Run `npm run start` to start the production server.
-9. Open a web browser and navigate to `http://localhost:3000`.
+---
 
-## 📚 Resources
+## Evaluation Criteria
 
-- [Domain-Driven Design](https://martinfowler.com/eaaDev/DomainDrivenDesign.html)
-- [Modular Monolith](https://martinfowler.com/bliki/ModularMonolith.html)
-- [Hexagonal Architecture](https://martinfowler.com/bliki/HexagonalArchitecture.html)
-- [Clean Architecture](https://www.clean-architecture.net/)
-- [Clean Code](https://www.clean-code.com/en/)
-- [DDD](https://dddbook.io/)
-- [DDD Book](https://dddbook.io/)
-- [DDD by Example](https://dddbyexample.com/)
+| Criterion                                                            | Weight |
+| -------------------------------------------------------------------- | ------ |
+| Type Safety (branded types, no `any`, compile-time safety)           | 30%    |
+| Domain Design (entities enforce invariants, immutable value objects) | 30%    |
+| Observer Pattern (subscribe/unsubscribe works, typed events)         | 20%    |
+| Code Quality (clean code, separated concerns)                        | 10%    |
+| Working Demo (all 5 CLI scenarios pass)                              | 10%    |
 
-## 📝 License
+---
 
-This project is licensed under the [MIT License](LICENSE).
+## Resources
+
+- [Domain-Driven Design — Martin Fowler](https://martinfowler.com/eaaDev/DomainDrivenDesign.html)
+- [Parse, Don't Validate — Alexis King](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)
+- [TypeScript Handbook — Branded Types](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html)
+- [Hexagonal Architecture — Martin Fowler](https://martinfowler.com/bliki/HexagonalArchitecture.html)
